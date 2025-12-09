@@ -1,4 +1,4 @@
-from undertale_manager import __version__
+from undertale_manager import __version__  # noqa
+from undertale_manager.tui import main
 
-if __name__ == "__main__":
-	print(f"Undertale Manager v{__version__}")
+main()

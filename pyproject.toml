@@ -7,6 +7,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
+textual = "^6.7.1"
 
 [tool.poetry.group.dev.dependencies]
 build = "^1.3.0"
@@ -14,6 +15,9 @@ flake8 = "^7.3.0"
 pytest = "^9.0.1"
 twine = "^6.2.0"
 wheel = "^0.45.1"
+
+[tool.poetry.scripts]
+undertale-manager = "undertale_manager.tui:main"
 
 [build-system]
 requires = ["poetry-core"]
