@@ -6,7 +6,7 @@ authors = ["AfterNoon PM <h2o.Drop2010+github@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.15"
 textual = "^6.7.1"
 
 [tool.poetry.group.dev.dependencies]
@@ -15,6 +15,8 @@ flake8 = "^7.3.0"
 pytest = "^9.0.1"
 twine = "^6.2.0"
 wheel = "^0.45.1"
+textual-dev = "^1.8.0"
+pyinstaller = "^6.17.0"
 
 [tool.poetry.scripts]
 undertale-manager = "undertale_manager.tui:main"

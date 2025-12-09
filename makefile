@@ -84,14 +84,17 @@ install-root: pyproject.toml $(VENV_DIR)/
 install-no-root: pyproject.toml $(VENV_DIR)/
 	poetry install --no-root
 
-build: pyproject.toml $(VENV_DIR)/
-	poetry run python -m build $(BUILD_ARGS)
+build: pyproject.toml undertale-manager.spec $(VENV_DIR)/
+	poetry run pyinstaller undertale-manager.spec
+
+run: pyproject.toml $(VENV_DIR)/
+	poetry run textual run .\src\undertale_manager\tui.py --dev
 
 test: tests/
 	poetry run pytest $(PYTEST_ARGS)
 
-publish:
-	poetry run twine upload -r pypi $(PROJECT_OUTDIR)/**
+# publish:
+# 	poetry run twine upload -r pypi $(PROJECT_OUTDIR)/**
 
 lint:
 # stop the build if there are Python syntax errors or undefined names.
