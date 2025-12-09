@@ -8,7 +8,7 @@ SaveListView {
 	margin: 1;
 	padding: 1;
 	border: wide $accent;
-	height: 85%;
+	height: 75%;
 }
 
 #main-buttons Button {
@@ -17,6 +17,14 @@ SaveListView {
 
 #backup-actions Button, #directory-actions Button, #detail-actions Button {
 	width: 48%;
+}
+
+#detail-stats {
+	height: 65%;
+	padding: 0 1;
+	margin: 1;
+	background: $panel;
+	border: wide $accent;
 }
 
 Button {

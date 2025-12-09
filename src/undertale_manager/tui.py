@@ -44,6 +44,7 @@ class UndertaleManagerApp(App):
 		yield Header()
 		if self.backup_dir:
 			yield SaveListView(self.backup_dir)
+		yield Rule()
 		yield Horizontal(
 			Button("Quit", id="quit", variant="error"),
 			Button("Refresh", id="refresh", variant="primary"),
@@ -171,9 +172,29 @@ class SaveDetailScreen(ModalScreen[None]):
 		self.save = save
 
 	def compose(self) -> ComposeResult:
+		match self.save.room_area.lower():
+			case "ruins":
+				room_color = "magenta"
+			case "waterfall":
+				room_color = "blue"
+			case "snowdin":
+				room_color = "white"
+			case "hotland":
+				room_color = "grey"
+			case "core":
+				room_color = "cyan"
+			case "new home":
+				room_color = "tan"
+			case "true lab":
+				room_color = "green"
+			case "error":
+				room_color = "red"
+			case _:
+				room_color = "black"
+
 		yield Header()
 		yield Vertical(
-			Label(self.save.TITLE, id="detail-title"),
+			Label(f"[b]{self.save.TITLE}[/b]", id="detail-title"),
 			Container(
 				Static(f"[b]Name[/b]: {'[red]' if self.save.genocide else ''}{self.save.NAME}{'[/red]' if self.save.genocide else ''}"),
 				Static(f"[b]LOVE:[/b] {self.save.LOVE}"),
@@ -183,7 +204,8 @@ class SaveDetailScreen(ModalScreen[None]):
 				Static(f"[b]FUN:[/b] {self.save.FUN}"),
 				Static(f"[b]Kills:[/b] {self.save.kills}"),
 				Static(f"[b]Playtime:[/b] {self.save.playtime}"),
-				Static(f"[b]Room:[/b] {self.save.room_area}/{self.save.room_name} (#{self.save.room_id})"),
+				Static(f"[b]Room:[/b] [{room_color}]{self.save.room_area}[/{room_color}]/{self.save.room_name} (#{self.save.room_id})"),
+				id="detail-stats"
 			),
 			Rule(),
 			Horizontal(
@@ -229,6 +251,7 @@ class BackupNameScreen(ModalScreen[None]):
 		yield Vertical(
 			Label("Name this backup", id="backup-title"),
 			Input(placeholder="Backup name", id="backup-name", value=default_name),
+			Rule(),
 			Horizontal(
 				Button("Cancel", id="cancel", variant="primary"),
 				Button("Save & Load", id="confirm", variant="success"),
