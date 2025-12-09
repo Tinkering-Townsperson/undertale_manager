@@ -26,6 +26,7 @@ __version__ = "1.0.0"
 
 import json
 import os
+import platform
 import shutil  # noqa
 from datetime import timedelta
 from pathlib import Path
@@ -37,10 +38,14 @@ from undertale_manager.ids import ROOM_IDS  # noqa
 # CONFIG AND SAVE DIR SETUP #
 #############################
 
+if (system := platform.system()) == "Windows":
 	GAME_SAVE_DIR = Path(os.getenv("LOCALAPPDATA")) / "UNDERTALE"
 	CONFIG_FILE = Path(os.getenv("LOCALAPPDATA")) / "undertale_manager" / "config.json"
+elif system == "Darwin":
+	GAME_SAVE_DIR = Path("~/Library/Application Support/com.tobyfox.undertale").expanduser().resolve()
+	CONFIG_FILE = Path("~/Library/Application Support/undertale_manager/config.json").expanduser().resolve()
 else:
-	# TODO: Implement config and save dir for non-Windows OSes 😬
+	# TODO: Implement config and save dir for Linux thru Steam Proton 😬
 	exit("Unsupported OS")
 
 
