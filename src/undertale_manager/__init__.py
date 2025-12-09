@@ -27,6 +27,7 @@ __version__ = "1.0.0"
 import json
 import os
 import shutil  # noqa
+from datetime import timedelta
 from pathlib import Path
 
 from undertale_manager.ids import ROOM_IDS  # noqa
@@ -80,6 +81,8 @@ class Save:
 			self.room_id = "N/A"
 			self.room_name = "N/A"
 			self.room_area = "N/A"
+			self.genocide = "N/A"
+			self.data = []
 			return
 
 		with (self.path / "file0").open() as save_file:
@@ -95,6 +98,41 @@ class Save:
 		self.room_id = data[547].strip()
 		self.room_name = ROOM_IDS[int(self.room_id)].get("name", "")
 		self.room_area = ROOM_IDS[int(self.room_id)].get("area", "")
+		self.playtime = timedelta(seconds=round(int(data[548].strip())/30))
+		self.data = data
+
+		match self.room_area.lower():
+			case "error":
+				current_area = 0
+			case "ruins":
+				current_area = 1
+			case "snowdin":
+				current_area = 2
+			case "waterfall":
+				current_area = 3
+			case "hotland":
+				current_area = 4
+			case "core":
+				current_area = 5
+			case "new home":
+				current_area = 6
+			case _:
+				current_area = 7
+
+		genocide_areas = []
+
+		if current_area >= 1:
+			genocide_areas.append(True if data[251].strip() == "1" else False)
+		if current_area >= 2:
+			genocide_areas.append(True if data[252].strip() == "1" else False)
+		if current_area >= 3:
+			genocide_areas.append(True if data[253].strip() == "1" else False)
+		if current_area >= 4:
+			genocide_areas.append(True if data[254].strip() == "1" or data[255].strip() == "1" else False)
+		if current_area >= 6:
+			genocide_areas.append(int(self.LOVE) >= 19)
+
+		self.genocide = all(genocide_areas) or data[510].strip() == "1"
 
 	def is_valid(self) -> bool:
 		"""Check if this save has valid data (not empty)."""
@@ -125,8 +163,11 @@ def backup_save(name, backup_dir: Path, rm=False):
 	shutil.copytree(GAME_SAVE_DIR, backup_path, dirs_exist_ok=True)
 
 	if rm:
-		shutil.rmtree(GAME_SAVE_DIR)
-		GAME_SAVE_DIR.mkdir(parents=True, exist_ok=True)
+		for item in GAME_SAVE_DIR.iterdir():
+			if item.is_dir():
+				shutil.rmtree(item)
+			else:
+				item.unlink()
 
 	print(f"Backup '{name}' created.")
 
@@ -141,12 +182,20 @@ def load_save(path: os.PathLike, rm=False):
 
 	if (GAME_SAVE_DIR / "file0").exists() or (GAME_SAVE_DIR / "file9").exists() or (GAME_SAVE_DIR / "undertale.ini").exists():
 		if rm:
-			shutil.rmtree(GAME_SAVE_DIR)
+			for item in GAME_SAVE_DIR.iterdir():
+				if item.is_dir():
+					shutil.rmtree(item)
+				else:
+					item.unlink()
 		else:
 			print("Current save exists. Use rm=True to overwrite.")
 			return
 
-	shutil.copytree(path, GAME_SAVE_DIR)
+	for item in path.iterdir():
+		if item.is_dir():
+			shutil.copytree(item, GAME_SAVE_DIR / item.name, dirs_exist_ok=True)
+		else:
+			shutil.copy(item, GAME_SAVE_DIR / item.name)
 
 	print(f"Backup '{path.name}' loaded.")
 

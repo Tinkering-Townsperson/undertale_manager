@@ -1,8 +1,13 @@
 # Undertale Manager
+
  Manage multiple UNDERTALE save files!
 
 ## Installation
-### Pip
+
+### Pipx
+
 ```bash
-pip install undertale_manager
+git clone https://github.com/Tinkering-Townsperson/undertale_manager.git
+cd undertale_manager
+pipx install .
 ```

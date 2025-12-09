@@ -11,9 +11,16 @@ SaveListView {
 	height: 85%;
 }
 
-Button {
+#main-buttons Button {
 	width: 22%;
-	margin: 1 5 1 5;
+}
+
+#backup-actions Button, #directory-actions Button, #detail-actions Button {
+	width: 48%;
+}
+
+Button {
+	margin: 1 5;
 }
 
 Label {

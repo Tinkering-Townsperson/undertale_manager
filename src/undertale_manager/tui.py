@@ -4,14 +4,15 @@
 This file has quite a bit of AI-generated code. I used GitHub Copilot to help speed up the development and fix bugs.
 """
 
+from datetime import datetime
 from os import PathLike
 from pathlib import Path
 from typing import Optional
 
 from textual.app import App, ComposeResult
-from textual.containers import Horizontal, Vertical
+from textual.containers import Horizontal, Vertical, Container
 from textual.screen import ModalScreen
-from textual.widgets import Button, DirectoryTree, Footer, Header, Input, Label, ListItem, ListView, Static
+from textual.widgets import Button, DirectoryTree, Footer, Header, Input, Label, ListItem, ListView, Static, Rule
 
 from undertale_manager import GAME_SAVE_DIR, Save, __version__, backup_save, list_backups, load_config, load_save, save_config # noqa
 
@@ -40,7 +41,7 @@ class UndertaleManagerApp(App):
 			Button("Refresh", id="refresh", variant="primary"),
 			Button("Change Directory", id="change-dir", variant="primary"),
 			Button("Backup Current Save", id="backup", variant="success"),
-			id="buttons",
+			id="main-buttons",
 		)
 		yield Footer()
 
@@ -59,6 +60,7 @@ class UndertaleManagerApp(App):
 			config = load_config()
 			config["backup_dir"] = str(self.backup_dir)
 			save_config(config)
+			self.notify(f"Backup directory: {self.backup_dir.name}", severity="information")
 			self.refresh_save_list()
 		elif not self.backup_dir:
 			# No directory selected and none set, exit
@@ -69,15 +71,18 @@ class UndertaleManagerApp(App):
 			self.exit()
 		elif event.button.id == "backup":
 			if not self.backup_dir:
+				self.notify("Select a backup directory first.", severity="warning")
 				return
 			current_save = Save(GAME_SAVE_DIR)
 			if not current_save.is_valid():
+				self.notify("Current save is empty; nothing to back up.", severity="warning")
 				return  # Don't backup empty saves
 			self.push_screen(BackupNameScreen(current_save, rm=False))
 		elif event.button.id == "refresh":
 			if not self.backup_dir:
 				return
 			self.refresh_save_list()
+			self.notify("Refreshed save list.", severity="information")
 		elif event.button.id == "change-dir":
 			self.run_worker(self.choose_directory())
 
@@ -89,7 +94,7 @@ class UndertaleManagerApp(App):
 			save_list_view.clear()
 		except Exception:
 			# No SaveListView yet, mount it
-			self.mount(SaveListView(self.backup_dir), before="#buttons")
+			self.mount(SaveListView(self.backup_dir), before="#main-buttons")
 			return
 		for save in list_backups(self.backup_dir):
 			save_list_view.append(SaveWidget(Save(save)))
@@ -157,14 +162,18 @@ class SaveDetailScreen(ModalScreen[None]):
 		yield Header()
 		yield Vertical(
 			Label(self.save.TITLE, id="detail-title"),
-			Static(f"Name: {self.save.NAME}"),
-			Static(f"LOVE: {self.save.LOVE}"),
-			Static(f"EXP: {self.save.EXP}"),
-			Static(f"GOLD: {self.save.GOLD}"),
-			Static(f"HP: {self.save.HP}"),
-			Static(f"Kills: {self.save.kills}"),
-			Static(f"Room: {self.save.room_area}/{self.save.room_name} (#{self.save.room_id})"),
-			Static(f"FUN: {self.save.FUN}"),
+			Container(
+				Static(f"[b]Name[/b]: {'[red]' if self.save.genocide else ''}{self.save.NAME}{'[/red]' if self.save.genocide else ''}"),
+				Static(f"[b]LOVE:[/b] {self.save.LOVE}"),
+				Static(f"[b]EXP:[/b] {self.save.EXP}"),
+				Static(f"[b]GOLD:[/b] {self.save.GOLD}"),
+				Static(f"[b]HP:[/b] {self.save.HP}"),
+				Static(f"[b]FUN:[/b] {self.save.FUN}"),
+				Static(f"[b]Kills:[/b] {self.save.kills}"),
+				Static(f"[b]Playtime:[/b] {self.save.playtime}"),
+				Static(f"[b]Room:[/b] {self.save.room_area}/{self.save.room_name} (#{self.save.room_id})"),
+			),
+			Rule(),
 			Horizontal(
 				Button("Close", id="close", variant="primary"),
 				Button("Load Save", id="load", variant="success"),
@@ -182,11 +191,14 @@ class SaveDetailScreen(ModalScreen[None]):
 			self.dismiss()
 		elif event.button.id == "load":
 			if not self.save.is_valid():
+				self.app.notify("Cannot load an empty save.", severity="warning")
 				return  # Don't load empty saves
 			if Save(GAME_SAVE_DIR).is_valid():
 				self.app.push_screen(BackupNameScreen(self.save, rm=True))
 
 			load_save(self.save.path, rm=True)
+			self.app.notify(f"Loaded save: {self.save.TITLE}", severity="success")
+			self.dismiss()
 
 
 class BackupNameScreen(ModalScreen[None]):
@@ -200,7 +212,7 @@ class BackupNameScreen(ModalScreen[None]):
 		self.rm = rm
 
 	def compose(self) -> ComposeResult:
-		default_name = f"{self.save.TITLE}-backup"
+		default_name = datetime.now().strftime("Backup_%Y%m%d_%H%M%S")
 		yield Header()
 		yield Vertical(
 			Label("Name this backup", id="backup-title"),
@@ -222,11 +234,16 @@ class BackupNameScreen(ModalScreen[None]):
 			self.dismiss()
 		elif event.button.id == "confirm":
 			backup_input = self.query_one("#backup-name", Input).value.strip()
-			if not backup_input:
-				return
+			if backup_input:
+				backup_save(name=backup_input, backup_dir=self.app.backup_dir, rm=self.rm)
+				action = "Saved current game and backed up" if self.rm else "Backed up"
+			else:
+				self.rm = True
+				action = "No name given; Proceeding to load"
 
-			# FIXME: something's going wong here idk what 😭
-			backup_save(name=backup_input, backup_dir=self.app.backup_dir, rm=self.rm)
+			# Refresh list so the new backup shows up immediately
+			self.app.refresh_save_list()
+			self.app.notify(f"{action} save: {backup_input}", severity="success")
 			self.dismiss()
 
 
