@@ -4,6 +4,10 @@
 This file has quite a bit of AI-generated code. I used GitHub Copilot to help speed up the development and fix bugs.
 """
 
+###########
+# IMPORTS #
+###########
+
 from datetime import datetime
 from os import PathLike
 from pathlib import Path
@@ -16,6 +20,10 @@ from textual.widgets import Button, DirectoryTree, Footer, Header, Input, Label,
 
 from undertale_manager import GAME_SAVE_DIR, Save, __version__, backup_save, list_backups, load_config, load_save, save_config # noqa
 
+
+#############
+# APP CLASS #
+#############
 
 class UndertaleManagerApp(App):
 	CSS_PATH = "undertale_manager.tcss"
@@ -99,6 +107,10 @@ class UndertaleManagerApp(App):
 		for save in list_backups(self.backup_dir):
 			save_list_view.append(SaveWidget(Save(save)))
 
+
+#############################
+# EXTRA SCREENS AND WIDGETS #
+#############################
 
 class BackupDirectoryScreen(ModalScreen[Path]):
 	"""Screen to choose the backup directory."""

@@ -1,4 +1,4 @@
-"""UNDERTALE Save Manager - Backup and manage multiple UNDERTALE save files.
+"""UNDERTALE Save Manager - Manage multiple UNDERTALE save files!
 
 This module provides utilities for:
 - Loading and parsing UNDERTALE save files
@@ -32,7 +32,11 @@ from pathlib import Path
 
 from undertale_manager.ids import ROOM_IDS  # noqa
 
-if os.name == "nt":
+
+#############################
+# CONFIG AND SAVE DIR SETUP #
+#############################
+
 	GAME_SAVE_DIR = Path(os.getenv("LOCALAPPDATA")) / "UNDERTALE"
 	CONFIG_FILE = Path(os.getenv("LOCALAPPDATA")) / "undertale_manager" / "config.json"
 else:
@@ -60,6 +64,10 @@ def save_config(config: dict) -> None:
 	except Exception:
 		pass
 
+
+############################################
+# SAVE CLASS AND SAVE MANAGEMENT FUNCTIONS #
+############################################
 
 class Save:
 	"""Object for save files.
